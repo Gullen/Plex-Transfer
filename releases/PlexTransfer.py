@@ -1,3 +1,9 @@
+# RED \033[1;31;40m
+# WHITE \033[1;37;40m
+# YELLOW \033[1;33;40m
+# AQUA \033[1;36;40m
+# GREEN \033[1;32;40m
+
 from os import system, getenv
 from time import sleep
 import json
@@ -34,13 +40,11 @@ def setup():
     if selector == "1":
         transferMovie(data)
     elif selector == "2":
-        print()
-        print("\033[1;31;40m Option is currently not supported...")
-        sleep(3)
+        transferSeries(data)
     elif selector == "3":
         options(data)
     elif selector == "4":
-        pass
+        exit()
     else:
         invalidOption()
         setup()
@@ -160,6 +164,94 @@ def changeData(toBeChanged, data):
     input()
 
 
+def transferSeries(data):
+    system("cls")
+    watermark()
+    printData(data)
+
+    # Give options
+    print("Please choose one of the following...")
+    print("1: Transferring brand new series")
+    print("2: Adding season to existing series")
+    print()
+    selection = input("> ")
+
+    if selection == "1":
+        newSeries(data)
+    elif selection == "2":
+        existingSeries(data)
+    else:
+        invalidOption()
+        transferSeries(data)
+
+
+def newSeries(data):
+    system("cls")
+    watermark()
+    printData(data)
+
+    # Confirm Name
+    print("What is the full name of the series?")
+    name = input ("> ")
+    print()
+    print("What was the release year of the series? i.e. 1992")
+    year = input("> ")
+    print()
+    dir = name + " (" + year + ")"
+    print("Is the following correct?\033[1;32;40m")
+    print(dir)
+    print("\033[1;37;40m")
+    print("type \033[1;36;40m'yes'\033[1;37;40m to confirm.")
+    print("\033[1;31;40mThis will create the directory in your server!\033[1;37;40m")
+    print("Please remember this directory name")
+    c = input("> ")
+
+    if c.upper() == "YES":
+        pass
+    else:
+        print()
+        print("\033[1;31;40mName was not confirmed...")
+        print("Returning to menu...\033[1;37;40m")
+        sleep(3)
+        setup()
+
+    print()
+    print("Creating series directory...")
+
+    dir = dir.replace(" ", "\ ")
+    dir = dir.replace("(", "\(")
+    dir = dir.replace(")", "\)")
+    command = "ssh " + data["username"] + "@" + data["address"] + ' "mkdir ' + data["series"] + "/" + dir + '"'
+    print("\033[1;36;40m" + command)
+    system(command)
+    print()
+    print("\033[1;37;40mDirectory created successfully...")
+    sleep(3)
+    existingSeries(data)
+
+
+def existingSeries(data):
+    system("cls")
+    watermark()
+    printData(data)
+    print("\033[1;31;40mMAKE SURE GIVEN DIRECTORY IS NAMED WITH THE SEASON i.e. 'Season 01', 'Season 02', 'Season 03' ECT")
+    print("Episodes must be named like so: 'Game of Thrones (2011) S01E01', 'Game of Thrones (2011) S01E02', 'Game of Thrones (2011) S06E12' ect\033[1;37;40m")
+    print("")
+    print("Please give the full location of the season to transfer")
+    loc = input("> ")
+    print()
+    print("What is the directory name of the series, i.e. : \033[1;32;40m'Game of Thrones (2011)'")
+    print("\033[1;31;40mCASE AND SPACE SENSITIVE!\033[1;37;40m")
+    dir = input("> ")
+    #dir = dir.replace(" ", "\ ")
+    #dir = dir.replace("(", "\(")
+    #dir = dir.replace(")", "\)")
+
+    print()
+    print("\n====== T R A N S F E R R I N G   S E A S O N ======\033[1;36;40m \n")
+    scpS(loc, data, dir)
+
+
 def transferMovie(data):
     system("cls")
     watermark()
@@ -169,15 +261,28 @@ def transferMovie(data):
     loc = input("> ")
 
     print("\n====== T R A N S F E R R I N G   M O V I E======\033[1;36;40m \n")
-    scp(loc, "movies", data)
+    scpM(loc,data)
 
-def scp(file, opt, data):
-    command =\
-        "scp " + file + " " + data["username"] + "@" + data["address"] + ":" + data[opt]
+
+def scpS(loc, data, name):
+    command = \
+        "scp -r " + loc + " " + data["username"] + "@" + data["address"] + ':"' + "'" + data["series"] + "/" + name + "'" + '"'
     print(command)
     system(command)
     print()
-    print("\033[1;33;40m Movie Transferred successfully!")
+    print("\033[1;33;40m" + "Season Transferred successfully!")
+    print("Press Enter To Continue!")
+    input()
+    setup()
+
+
+def scpM(file, data):
+    command =\
+        "scp " + file + " " + data["username"] + "@" + data["address"] + ":" + data["movies"]
+    print(command)
+    system(command)
+    print()
+    print("\033[1;33;40m" + "Movie Transferred successfully!")
     print("Press Enter To Continue!")
     input()
     setup()
